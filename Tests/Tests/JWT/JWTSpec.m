@@ -187,7 +187,8 @@ describe(@"encoding", ^{
                                      @"nbf": @(-62135769600),
                                      @"iat": @(1370005175.80196),
                                      @"jti": @"thisisunique",
-                                     @"typ": @"test"
+                                     @"typ": @"test",
+                                     @"scope": @"https://www.googleapis.com/auth/devstorage.read_write"
                                      };
         
         NSString *algorithmName = @"Test";
@@ -195,9 +196,9 @@ describe(@"encoding", ^{
         JWTClaimsSet *claimsSet = [JWTClaimsSetSerializer claimsSetWithDictionary:dictionary];
         
         NSString *headerSegment = [[NSJSONSerialization dataWithJSONObject:@{@"typ": @"JWT", @"alg": algorithmName} options:0 error:nil] base64UrlEncodedString];
-        
+
         NSString *payloadSegment = [[NSJSONSerialization dataWithJSONObject:dictionary options:0 error:nil] base64UrlEncodedString];
-        
+
         NSString *signingInput = [@[headerSegment, payloadSegment] componentsJoinedByString:@"."];
         
         NSString *signedOutput = @"signed";
@@ -212,8 +213,9 @@ describe(@"encoding", ^{
         [[algorithmMock should] receive:@selector(encodePayload:withSecret:) andReturn:signedOutput withCount:2 arguments:signingInput, secret];
         
         [JWTClaimsSetSerializer stub:@selector(dictionaryWithClaimsSet:) andReturn:dictionary];
-        
+
         [[[JWT encodeClaimsSet:claimsSet withSecret:secret algorithm:algorithmMock] should] equal:jwt];
+
         //fluent
         [[[JWT encodeClaimsSet:claimsSet].secret(secret).algorithm(algorithmMock).encode should] equal:jwt];
         });
@@ -500,6 +502,7 @@ describe(@"decoding", ^{
             claimsSet.issuedAt = [NSDate date];
             claimsSet.identifier = @"thisisunique";
             claimsSet.type = @"test";
+            claimsSet.scope = @"https://www.googleapis.com/auth/devstorage.read_write";
             
             
             NSDictionary *payload = [JWTClaimsSetSerializer dictionaryWithClaimsSet:claimsSet];//@{@"key": @"value"};
